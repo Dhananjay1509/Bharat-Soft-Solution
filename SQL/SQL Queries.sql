@@ -236,3 +236,230 @@ WHERE d.loc = 'NEW YORK';
 -- OR
 SELECT ename, deptno FROM emp
 WHERE deptno = (SELECT deptno FROM dept WHERE loc = 'NEW YORK');
+
+SELECT ename, sal 
+FROM emp 
+WHERE sal > (SELECT sal FROM emp WHERE ename = 'ALLEN');
+
+SELECT deptno 
+FROM emp 
+WHERE ename = 'MILLER' OR ename = 'SMITH';
+
+SELECT ename, sal 
+FROM emp 
+WHERE deptno IN (SELECT deptno FROM emp WHERE ename='MILLER' OR ename='SMITH');
+
+SELECT ename, deptno 
+FROM emp 
+WHERE job = (SELECT job FROM emp WHERE ename = 'SMITH');
+
+SELECT ename, sal 
+FROM emp 
+WHERE sal = (SELECT MAX(sal) FROM emp);
+
+SELECT ename, sal 
+FROM emp  
+WHERE sal = (SELECT MAX(sal) FROM emp 
+             WHERE sal < (SELECT MAX(sal) FROM emp));
+
+SELECT ename, sal 
+FROM emp 
+ORDER BY sal DESC 
+LIMIT 1 OFFSET 0;
+
+SELECT ename, sal 
+FROM emp 
+ORDER BY sal DESC 
+LIMIT 1 OFFSET 1;
+
+SELECT ename, sal 
+FROM emp 
+ORDER BY sal DESC 
+LIMIT 1 OFFSET 3;
+
+SELECT ename, sal, deptno 
+FROM emp 
+WHERE sal IN (SELECT MAX(sal) FROM emp 
+              GROUP BY deptno);
+
+SELECT deptno, MAX(sal) 
+FROM emp 
+GROUP BY deptno;
+
+CREATE TABLE employee_table (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(40) NOT NULL,
+    job VARCHAR(20) NOT NULL,
+    age INT NOT NULL,
+    PRIMARY KEY (id)
+);
+
+DESC employee_table;
+
+ALTER TABLE employee_table2 ADD city VARCHAR(10);
+
+ALTER TABLE employee_table
+ADD address VARCHAR(50) NOT NULL AFTER name,
+ADD salary INT(20) NOT NULL AFTER age;
+
+-- Force to accept null value
+ALTER TABLE employee_table
+MODIFY address VARCHAR(100) NULL;
+
+CREATE TABLE t1(c1 INT(10), c2 VARCHAR(10));
+DESC t1;
+
+INSERT INTO t1 VALUES(10, 'a');
+INSERT INTO t1 VALUES(11, 'b');
+INSERT INTO t1 VALUES(12, 'c');
+INSERT INTO t1 VALUES(13, 'd');
+
+TRUNCATE t1;
+
+RENAME TABLE t1 TO t1_new;
+
+SELECT * FROM t1;
+
+CREATE TABLE emp_copy AS SELECT * FROM emp;
+
+SET SQL_SAFE_UPDATES = 0;
+UPDATE emp_copy SET ename='Rohit' WHERE empno=7369;
+SET SQL_SAFE_UPDATES = 1;
+
+SELECT * FROM dept;
+
+-- Any DDL statement by default means commit
+-- START TRANSACTION;
+
+SELECT e.ename, e.sal, e.job, e.deptno AS Edeptno, d.deptno AS Ddeptno, d.loc 
+FROM emp e 
+INNER JOIN dept d 
+ON e.deptno = d.deptno;
+
+SELECT e.ename, e.sal, e.job, e.deptno AS Edeptno, d.deptno AS Ddeptno, d.loc 
+FROM emp e 
+INNER JOIN dept d 
+ON e.deptno = d.deptno;
+
+SELECT e.ename, e.job, e.deptno AS Edeptno, d.deptno AS Ddeptno 
+FROM emp e 
+LEFT JOIN dept d 
+ON e.deptno = d.deptno;
+
+SELECT A.empno, A.ename, A.mgr, B.ename AS 'Manager Name' 
+FROM emp A 
+LEFT JOIN emp B 
+ON A.mgr = B.empno;
+
+SELECT sal, CONCAT(LEFT(sal, LENGTH(sal) - 2), '**') AS masked_sal FROM emp;
+
+SELECT * FROM emp 
+WHERE MOD(empno, 2) = 0;
+
+SELECT ename, sal, ROUND((AVG(sal) OVER()), 2) AS avg_sal FROM emp;
+SELECT job, AVG(sal) FROM emp GROUP BY job;
+SELECT ename, job, sal, AVG(sal) OVER(PARTITION BY job) AS avg_sal FROM emp;
+
+
+
+
+
+USE w1;
+
+CREATE TABLE sales(
+    sales_employee VARCHAR(50) NOT NULL,
+    fiscal_year INT NOT NULL,
+    sale DECIMAL(14,2) NOT NULL,
+    PRIMARY KEY(sales_employee,fiscal_year)
+);
+
+
+INSERT INTO sales(sales_employee,fiscal_year,sale)
+VALUES('Bob',2016,100),
+      ('Bob',2017,150),
+      ('Bob',2018,200),
+      ('Alice',2016,150),
+      ('Alice',2017,100),
+      ('Alice',2018,200),
+       ('John',2016,200),
+      ('John',2017,150),
+      ('John',2018,250);
+      
+SELECT * FROM sales;
+SELECT SUM(sale) FROM sales;
+SELECT fiscal_year, SUM(sale) FROM sales GROUP BY fiscal_year;
+SELECT fiscal_year, sales_employee, sale, SUM(sale) OVER(PARTITION BY fiscal_year) AS TotalSales FROM sales;
+SELECT fiscal_year, sales_employee, sale, SUM(sale) OVER() AS TotalSales FROM sales;
+
+
+CREATE TABLE scores (
+    name VARCHAR(20) PRIMARY KEY,
+    score INT NOT NULL
+);
+
+
+INSERT INTO
+	scores(name, score)
+VALUES
+	('Smith',81),
+	('Jones',55),
+	('Williams',55),
+	('Taylor',62),
+	('Brown',62),
+	('Davies',84),
+	('Evans',87),
+	('Wilson',72),
+	('Thomas',72),
+	('Johnson',100);
+    
+SELECT * FROM scores;
+SELECT name, score, ROW_NUMBER() OVER() FROM scores;
+SELECT name, score, ROW_NUMBER() OVER(ORDER BY score) AS row_num, CUME_DIST() OVER(ORDER BY score) AS cume_dist_value FROM scores;
+SELECT name, score, ROW_NUMBER() OVER(ORDER BY score) AS row_num FROM scores;
+SELECT name, score, ROW_NUMBER() OVER(ORDER BY score) AS row_num, CUME_DIST() OVER(ORDER BY score) AS cume_dist_value FROM scores;
+
+
+CREATE TABLE t (val INT);
+
+INSERT INTO t(val)
+VALUES(1),(2),(2),(3),(4),(4),(5);
+
+SELECT * FROM t;
+SELECT val, DENSE_RANK() OVER(ORDER BY val) AS value_rank FROM t;
+SELECT sales_employee, fiscal_year, sale, DENSE_RANK() OVER(PARTITION BY fiscal_year ORDER BY sale DESC) AS Rank_Sales FROM sales;
+SELECT sales_employee, fiscal_year, sale, DENSE_RANK() OVER(ORDER BY sale DESC) AS Rank_Sales FROM sales;
+
+
+CREATE TABLE overtime (
+    employee_name VARCHAR(50) NOT NULL,
+    department VARCHAR(50) NOT NULL,
+    hours INT NOT NULL,
+     PRIMARY KEY (employee_name , department)
+);
+
+DESCRIBE overtime;
+
+INSERT INTO overtime(employee_name, department, hours)
+VALUES('Diane Murphy','Accounting',37),
+('Mary Patterson','Accounting',74),
+('Jeff Firrelli','Accounting',40),
+('William Patterson','Finance',58),
+('Gerard Bondur','Finance',47),
+('Anthony Bow','Finance',66),
+('Leslie Jennings','IT',90),
+('Leslie Thompson','IT',88),
+('Julie Firrelli','Sales',81),
+('Steve Patterson','Sales',29),
+('Foon Yue Tseng','Sales',65),
+('George Vanauf','Marketing',89),
+('Loui Bondur','Marketing',49),
+('Gerard Hernandez','Marketing',66),
+('Pamela Castillo','SCM',96),
+('Larry Bott','SCM',100),
+('Barry Jones','SCM',65);
+
+SELECT * FROM overtime;
+SELECT employee_name, hours, FIRST_VALUE(employee_name) OVER(ORDER BY hours) AS Least_over_time FROM overtime;
+SELECT employee_name, department, hours, FIRST_VALUE(employee_name) OVER(PARTITION BY department ORDER BY hours) AS Least_over_time FROM overtime;
+SELECT sales_employee, fiscal_year, sale, LAG(sale, 1, 0) OVER(PARTITION BY sales_employee ORDER BY fiscal_year) AS "Previous Year Sale" FROM sales;
+SELECT sales_employee, fiscal_year, sale, LAG(sale, 1, 0) OVER(PARTITION BY sales_employee ORDER BY fiscal_year) AS "Previous Year Sale", sale - LAG(sale, 1, 0) OVER(PARTITION BY sales_employee ORDER BY fiscal_year) AS Sale_Vs_previous_year FROM sales;
